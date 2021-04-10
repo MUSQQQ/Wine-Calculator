@@ -1,0 +1,143 @@
+﻿@page "/"
+
+@using WineCalculator.Models
+
+<h1>Kalkulator do wina</h1>
+
+<EditForm Model="@wineCalc" OnValidSubmit="HandleValidSubmit">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+    <div>Rodzaj owocu</div>
+    <InputSelect @bind-Value="wineCalc.fruit">
+        <option value="">wybierz owoc</option>
+        <option value="jabłko">jabłko</option>
+        <option value="malina">malina</option>
+        <option value="wiśnia">wiśnia</option>
+        <option value="winogrono">winogrono</option>
+        <option value="czarna porzeczka">czarna porzeczka</option>
+        <option value="czarny bez">czarny bez</option>
+        <option value="pomarańcza">pomarańcza</option>
+    </InputSelect>
+    <div>Docelowa objętość</div>
+    <InputSelect @bind-Value="wineCalc.volume">
+        <option value="">wybierz objętość (L)</option>
+        <option value="2">2L</option>
+        <option value="5">5L</option>
+        <option value="10">10L</option>
+        <option value="35">35L</option>
+        <option value="50">50L</option>
+    </InputSelect>
+    <div>Docelowa moc</div>
+    <InputSelect @bind-Value="wineCalc.power">
+        <option value="">wybierz moc (%)</option>
+        <option value="9">9%</option>
+        <option value="11">11%</option>
+        <option value="16">16%</option>
+    </InputSelect>
+    
+    <div class="row">
+        <div class="column mr-2 ml-3">Czy pasteryzowane</div>
+        <div class="column">
+            <InputCheckbox @bind-Value="wineCalc.pasterized">
+            </InputCheckbox>
+        </div>
+    </div>
+    <button type="submit" class="btn-primary">Oblicz</button>
+</EditForm>
+<br/>
+<div class="ml-3">
+    @if (show)
+    {
+        <div class="row">
+            <div class="column">Potrzeba <b>@fruitKg.ToString("N")</b> kilogramów owoców</div>
+        </div>
+
+        <div class="row">
+            <div class="column">Potrzeba <b>@sugar.ToString("N")</b> dekagramów cukru</div>
+        </div>
+        @if (!showIfPasterized)
+        {
+            <div class="row">
+                <div class="column">Potrzeba <b>@yeast.ToString("N")</b> gramów drożdży</div>
+            </div>
+        }
+        @if (showIfPasterized)
+        {
+            <div class="row">
+                <div class="column">Potrzeba <b>@potassium.ToString("N")</b> gramów pirosiarczynu potasu</div>
+            </div>
+        }
+    }
+</div>
+
+@code {
+    private WineCalc wineCalc = new WineCalc();
+    private double fruitKg;
+    private double yeast;
+    private double sugar;
+    private double potassium = 0;
+    private int blgFinal;
+    private bool show = false;
+    private bool showIfPasterized = false;
+
+    public class Fruit
+    {
+        public string name;
+        public int blg;
+        public double volFromOneKilo;
+        public Fruit(string name, int blg, double volFromOneKilo)
+        {
+            this.name = name;
+            this.blg = blg;
+            this.volFromOneKilo = volFromOneKilo;
+        }
+    }
+    Fruit[] fruitList = { new Fruit("jabłko",14,0.5), new Fruit("malina",14,0.6), new Fruit("wiśnia",10,0.6), new Fruit("winogrono",10,0.7),
+       new Fruit("czarna porzeczka",12,0.7), new Fruit("czarny bez",8,0.7), new Fruit("pomarańcza",15,0.6)};
+
+    Fruit mainFruit = null;
+
+    private void HandleValidSubmit()
+    {
+        for (int i = 0; i < fruitList.Length; i++)
+        {
+            if (fruitList[i].name == wineCalc.fruit)
+            {
+                mainFruit = fruitList[i];
+                break;
+            }
+        }
+
+        //na razie uznaje ze wino ma taka sama gestosc jak woda czyli +- 1kg/1L
+
+        fruitKg = (int.Parse(wineCalc.volume) / mainFruit.volFromOneKilo);  // kg
+
+        FinalBlgCalc();
+
+        sugar = (blgFinal * 10 * int.Parse(wineCalc.volume) - mainFruit.blg * 10 * int.Parse(wineCalc.volume)) / 10;  // dkg
+
+        if (!wineCalc.pasterized)
+        {
+            potassium = int.Parse(wineCalc.volume) * 0.1;   // gram
+            showIfPasterized = true;
+        }
+        else
+            showIfPasterized = false;
+
+        yeast = 2 * int.Parse(wineCalc.volume) / 10;  // gram. dozowanie 2g / 10L???
+
+        show = true;
+    }
+
+    private void FinalBlgCalc()
+    {
+        if (int.Parse(wineCalc.power) == 9)
+            blgFinal = 18;
+        else if (int.Parse(wineCalc.power) == 11)
+            blgFinal = 20;
+        else if (int.Parse(wineCalc.power) == 16)
+            blgFinal = 25;
+    }
+
+}
