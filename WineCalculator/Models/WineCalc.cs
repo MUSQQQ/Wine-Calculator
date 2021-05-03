@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 
 namespace WineCalculator.Models
 {
+    //Model do kalkulatora. Pierwsze trzy zmienne to stringi bo nie wiedziałem 
+    //jak ustawić inne typy zmiennych jako możliwe wybory z listy rozwijanej.
     public class WineCalc
     {
         [Required]

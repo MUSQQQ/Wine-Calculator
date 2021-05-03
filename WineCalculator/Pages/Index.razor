@@ -47,6 +47,7 @@
 </EditForm>
 <br/>
 <div class="ml-3">
+    <!--Wyświetlanie info o pirosiarczynie lub drożdżach-->
     @if (show)
     {
         <div class="row">
@@ -73,6 +74,7 @@
 
 @code {
     private WineCalc wineCalc = new WineCalc();
+    //Nie obliczam wody bo nie trzeba (nie należy) jej używać według http://paragrafwkieliszku.pl/10-krokow-do-wlasnego-wina/
     private double fruitKg;
     private double yeast;
     private double sugar;
@@ -100,6 +102,7 @@
 
     private void HandleValidSubmit()
     {
+        //Zidentyfikowanie wybranego owocu
         for (int i = 0; i < fruitList.Length; i++)
         {
             if (fruitList[i].name == wineCalc.fruit)
@@ -109,27 +112,31 @@
             }
         }
 
-        //na razie uznaje ze wino ma taka sama gestosc jak woda czyli +- 1kg/1L
-
+        //Na razie uznaje że wino ma taką samą gęstość jak woda czyli +- 1kg/1L
+        //Do uistalenia czy tak ma być
         fruitKg = (int.Parse(wineCalc.volume) / mainFruit.volFromOneKilo);  // kg
 
+        //Ustalenie docelowego blg
         FinalBlgCalc();
 
-        sugar = (blgFinal * 10 * int.Parse(wineCalc.volume) - mainFruit.blg * 10 * int.Parse(wineCalc.volume)) / 10;  // dkg
+        sugar = (blgFinal * 10 * int.Parse(wineCalc.volume) - mainFruit.blg * 10 * int.Parse(wineCalc.volume)) / 10.0;  // dkg, żeby te wartości były w przedziale ~10 do ~1000
 
+        //Czy wymaga pirosiarczynu
         if (!wineCalc.pasterized)
         {
-            potassium = int.Parse(wineCalc.volume) * 0.1;   // gram
+            potassium = int.Parse(wineCalc.volume) * 0.1;   // gram; 0.1g na 1L???
             showIfPasterized = true;
         }
         else
             showIfPasterized = false;
 
-        yeast = 2 * int.Parse(wineCalc.volume) / 10;  // gram. dozowanie 2g / 10L???
+        yeast = 2 * int.Parse(wineCalc.volume) / 10.0;  // gram; dozowanie 2g / 10L???
 
+        //Po zakończeniu obliczeń wywołanych kliknięciem przycisku wynik pojawia się dzięki 'show'
         show = true;
     }
 
+    //Funkcja ustala docelowe blg na podstawie wybranej mocy
     private void FinalBlgCalc()
     {
         if (int.Parse(wineCalc.power) == 9)
